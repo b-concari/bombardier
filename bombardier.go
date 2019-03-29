@@ -18,6 +18,8 @@ import (
 	fhist "github.com/codesenberg/concurrent/float64/histogram"
 	uhist "github.com/codesenberg/concurrent/uint64/histogram"
 	"github.com/satori/go.uuid"
+
+	mclient "gopkg.mcclatchy.com/metrics/client"
 )
 
 type bombardier struct {
@@ -426,6 +428,59 @@ func (b *bombardier) gatherInfo() internal.TestInfo {
 	return info
 }
 
+func (b *bombardier) sendMetrics() {
+	c, err := mclient.New(&mclient.Config{
+		App:   "load_tests",
+		Index: b.conf.appName,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	var latencyMean, latencyMax, latencyCount float64
+	b.latencies.VisitAll(func(k uint64, v uint64) (r bool) {
+		kf, vf := float64(k), float64(v)
+		if latencyMax < kf {
+			latencyMax = kf
+		}
+		latencyMean += kf * vf
+		latencyCount += vf
+		return true
+	})
+	latencyMean /= latencyCount
+
+	var requestMean, requestMax, requestCount float64
+	b.requests.VisitAll(func(k float64, v uint64) (r bool) {
+		vf := float64(v)
+		if requestMax < k {
+			requestMax = k
+		}
+		requestMean += k * vf
+		requestCount += vf
+		return true
+	})
+	requestMean /= requestCount
+
+	_, err = c.Log(
+		mclient.Metric{Key: "bytesRead", ValueT: float64(b.bytesRead)},
+		mclient.Metric{Key: "bytesWritten", ValueT: float64(b.bytesWritten)},
+		mclient.Metric{Key: "timeTaken", ValueT: float64(b.timeTaken / 100)},
+		mclient.Metric{Key: "Req1XX", ValueT: float64(b.req1xx)},
+		mclient.Metric{Key: "Req2XX", ValueT: float64(b.req2xx)},
+		mclient.Metric{Key: "Req3XX", ValueT: float64(b.req3xx)},
+		mclient.Metric{Key: "Req4XX", ValueT: float64(b.req4xx)},
+		mclient.Metric{Key: "Req5XX", ValueT: float64(b.req5xx)},
+		mclient.Metric{Key: "ReqOthers", ValueT: float64(b.others)},
+		mclient.Metric{Key: "LatencyMean", ValueT: latencyMean},
+		mclient.Metric{Key: "LatencyMax", ValueT: latencyMax},
+		mclient.Metric{Key: "RpsMean", ValueT: requestMean},
+		mclient.Metric{Key: "RpsMax", ValueT: requestMax},
+	)
+	if err != nil {
+		fmt.Printf("Failed to send metrics: %q\n", err)
+	}
+}
+
 func (b *bombardier) printStats() {
 	info := b.gatherInfo()
 	err := b.template.Execute(b.out, info)
@@ -464,5 +519,8 @@ func main() {
 	bombardier.bombard()
 	if bombardier.conf.printResult {
 		bombardier.printStats()
+	}
+	if bombardier.conf.sendMetrics {
+		bombardier.sendMetrics()
 	}
 }

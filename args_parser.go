@@ -26,12 +26,14 @@ type kingpinParser struct {
 	numConns     uint64
 	timeout      time.Duration
 	latencies    bool
+	metrics      bool
 	insecure     bool
 	baseUrl      string
 	paths        []string
 	method       string
 	body         string
 	bodyFilePath string
+	appName      string
 	stream       bool
 	certPath     string
 	keyPath      string
@@ -52,6 +54,7 @@ func newKingpinParser() argsParser {
 		numConns:     defaultNumberOfConns,
 		timeout:      defaultTimeout,
 		latencies:    false,
+		metrics:      false,
 		method:       "GET",
 		body:         "",
 		bodyFilePath: "",
@@ -60,6 +63,7 @@ func newKingpinParser() argsParser {
 		keyPath:      "",
 		insecure:     false,
 		baseUrl:      "",
+		appName:      "",
 		paths:        []string{""},
 		rate:         new(nullableUint64),
 		clientType:   fhttp,
@@ -82,6 +86,12 @@ func newKingpinParser() argsParser {
 	app.Flag("latencies", "Print latency statistics").
 		Short('l').
 		BoolVar(&kparser.latencies)
+	app.Flag("metrics", "Send metrics to Kibana").
+		Short('e').
+		BoolVar(&kparser.metrics)
+	app.Flag("appName", "The name of the Kibana index to post to").
+		Short('u').
+		StringVar(&kparser.appName)
 	app.Flag("method", "Request method").
 		PlaceHolder("GET").
 		Short('m').
@@ -226,6 +236,8 @@ func (k *kingpinParser) parse(args []string) (config, error) {
 		keyPath:        k.keyPath,
 		certPath:       k.certPath,
 		printLatencies: k.latencies,
+		sendMetrics:    k.metrics,
+		appName:        k.appName,
 		insecure:       k.insecure,
 		rate:           k.rate.val,
 		clientType:     k.clientType,

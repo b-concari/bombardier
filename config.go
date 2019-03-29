@@ -15,6 +15,7 @@ type config struct {
 	baseUrl                   string
 	paths                     []string
 	body, bodyFilePath        string
+	appName                   string
 	stream                    bool
 	headers                   *headersList
 	timeout                   time.Duration
@@ -27,6 +28,7 @@ type config struct {
 	clientType               clientTyp
 
 	printIntro, printProgress, printResult bool
+	sendMetrics                            bool
 
 	format format
 }
