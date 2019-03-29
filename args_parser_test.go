@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 	"reflect"
 	"strconv"
 	"testing"
@@ -60,7 +61,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "http://localhost:8080",
+				baseUrl:       "http://localhost:8080",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -78,7 +79,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://localhost:443",
+				baseUrl:       "https://localhost:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -92,7 +93,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -136,7 +137,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:       new(headersList),
 				method:        "GET",
 				numReqs:       &defaultNumberOfReqs,
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -162,7 +163,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:        new(headersList),
 				printLatencies: true,
 				method:         "GET",
-				url:            "https://somehost.somedomain:443",
+				baseUrl:        "https://somehost.somedomain:443",
 				printIntro:     true,
 				printProgress:  true,
 				printResult:    true,
@@ -188,7 +189,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:       new(headersList),
 				insecure:      true,
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -217,7 +218,7 @@ func TestArgsParsing(t *testing.T) {
 				method:        "GET",
 				keyPath:       "testclient.key",
 				certPath:      "testclient.cert",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -257,7 +258,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:       new(headersList),
 				method:        "POST",
 				body:          "reqbody",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -293,7 +294,7 @@ func TestArgsParsing(t *testing.T) {
 					{"Two", "Value two"},
 				},
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -328,7 +329,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				rate:          &ten,
 				printIntro:    true,
 				printProgress: true,
@@ -353,7 +354,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				clientType:    fhttp,
 				printIntro:    true,
 				printProgress: true,
@@ -374,7 +375,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				clientType:    nhttp1,
 				printIntro:    true,
 				printProgress: true,
@@ -395,7 +396,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				clientType:    nhttp2,
 				printIntro:    true,
 				printProgress: true,
@@ -427,7 +428,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:       new(headersList),
 				method:        "GET",
 				bodyFilePath:  "testbody.txt",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -453,7 +454,7 @@ func TestArgsParsing(t *testing.T) {
 				headers:       new(headersList),
 				method:        "GET",
 				stream:        true,
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -472,7 +473,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -517,7 +518,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -562,7 +563,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: false,
 				printResult:   true,
@@ -587,7 +588,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    false,
 				printProgress: false,
 				printResult:   false,
@@ -632,7 +633,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -677,7 +678,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -707,7 +708,7 @@ func TestArgsParsing(t *testing.T) {
 				timeout:       defaultTimeout,
 				headers:       new(headersList),
 				method:        "GET",
-				url:           "https://somehost.somedomain:443",
+				baseUrl:       "https://somehost.somedomain:443",
 				printIntro:    true,
 				printProgress: true,
 				printResult:   true,
@@ -803,7 +804,7 @@ func TestArgsParsingWithEmptyPrintSpec(t *testing.T) {
 	if err == nil {
 		t.Fail()
 	}
-	if c != emptyConf {
+	if !cmp.Equal(c, emptyConf) {
 		t.Fail()
 	}
 }
@@ -820,7 +821,7 @@ func TestArgsParsingWithInvalidPrintSpec(t *testing.T) {
 	p := newKingpinParser()
 	for _, is := range invalidSpecs {
 		c, err := p.parse(is)
-		if err == nil || c != emptyConf {
+		if err == nil || !cmp.Equal(c, emptyConf) {
 			t.Errorf("invalid print spec %q parsed correctly", is)
 		}
 	}
